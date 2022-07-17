@@ -31,6 +31,9 @@ public class PreferencesFxUtils {
    * @return all settings of the categories
    */
   public static List<Setting> categoriesToSettings(List<Category> categories) {
+    if (categories == null) {
+      return new ArrayList<>();
+    }
     return categories.stream()
         .map(Category::getGroups)     // get groups from categories
         .filter(Objects::nonNull)     // remove all null
@@ -142,6 +145,9 @@ public class PreferencesFxUtils {
    * @return all settings of the groups
    */
   public static List<Setting> groupsToSettings(List<Group> groups) {
+    if (groups == null) {
+      return new ArrayList<>();
+    }
     return groups.stream()
         .map(Group::getSettings)
         .flatMap(Collection::stream)

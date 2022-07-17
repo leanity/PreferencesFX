@@ -173,9 +173,9 @@ public class ExtendedExample extends StackPane {
                 Setting.of("Night mode", nightMode)
             )
         ),
-        Category.of("Screen")
+        Category.of("Screen: {Screen name}")
             .subCategories(
-                Category.of("Scaling & Ordering",
+                Category.of("Scaling & Ordering {Scaling}",
                     Group.of(
                         Setting.of("Scaling", scaling)
                             .validate(DoubleRangeValidator.atLeast(1, "Scaling needs to be at least 1")),
@@ -295,8 +295,8 @@ public class ExtendedExample extends StackPane {
                     ),
                 Category.of("File Colors",
                     Setting.of(new Label("This can be your very own placeholder!"))),
-                Category.of("Scopes",
-                    Setting.of("My Enum", myEnumControl , myEnumSettingValue)),
+//                Category.of("Scopes",
+//                    Setting.of("My Enum", myEnumControl , myEnumSettingValue)),
                 Category.of("Notifications"),
                 Category.of("Quick Lists"),
                 Category.of("Path Variables")

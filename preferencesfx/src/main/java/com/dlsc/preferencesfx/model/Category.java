@@ -6,12 +6,19 @@ import com.dlsc.formsfx.model.util.TranslationService;
 import com.dlsc.preferencesfx.util.PreferencesFxUtils;
 import com.dlsc.preferencesfx.util.Strings;
 import com.dlsc.preferencesfx.view.CategoryView;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,18 +29,22 @@ import org.slf4j.LoggerFactory;
  * @author François Martin
  * @author Marco Sanfratello
  */
-public class Category {
+public class Category implements ChangeListener<Object> {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(Category.class.getName());
+  private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{(.*?)\\}");
 
   private StringProperty description = new SimpleStringProperty();
   private StringProperty descriptionKey = new SimpleStringProperty();
   private List<Group> groups;
   private List<Category> children;
+
+  private Set<Setting> placeholderSettings = new HashSet<>();
   private final StringProperty breadcrumb = new SimpleStringProperty("");
   private Node itemIcon;
   private boolean expand = false;
+  private TranslationService translationService;
 
   /**
    * Creates a category without groups, for top-level categories without any settings.
@@ -49,6 +60,8 @@ public class Category {
   private Category(String description, Group... groups) {
     this(description);
     this.groups = Arrays.asList(groups);
+    // after setting groups, translate again so that placeholders can get filled.
+    translate(null);
   }
 
   private Category(String description, Node itemIcon) {
@@ -138,6 +151,8 @@ public class Category {
    */
   public Category subCategories(Category... children) {
     this.children = Arrays.asList(children);
+    // after setting subcategories, translate again so that placeholders can get filled.
+    translate(null);
     return this;
   }
 
@@ -203,6 +218,33 @@ public class Category {
   }
 
   /**
+   * Find references to settings in the category description.
+   *
+   * Replace those references with the current value of the setting.
+   * Also subscribe to the setting, so that the description is updated when the setting changes.
+   */
+  private String fillPlaceholders(String description) {
+    Matcher placeholderMatcher = PLACEHOLDER_PATTERN.matcher(description);
+    while (placeholderMatcher.find()) {
+      String settingName = placeholderMatcher.group(1);
+      Setting setting =
+              Stream.of(PreferencesFxUtils.groupsToSettings(groups), PreferencesFxUtils.categoriesToSettings(children))
+                      .flatMap(Collection::stream)
+                      .filter(s -> s.getDescription().equals(settingName)).findFirst().orElse(null);
+      if (setting != null) {
+        description = description.replace(placeholderMatcher.group(), setting.valueProperty().getValue().toString());
+        if (!placeholderSettings.contains(setting)) {
+          setting.valueProperty().addListener(this);
+          placeholderSettings.add(setting);
+        }
+      } else {
+        LOGGER.error("Could not find setting with name {} referenced in description placeholder", settingName);
+      }
+    }
+    return description;
+  }
+
+  /**
    * This internal method is used as a callback for when the translation
    * service or its locale changes. Also applies the translation to all
    * contained sections.
@@ -211,13 +253,14 @@ public class Category {
    * @see com.dlsc.formsfx.model.structure.Group ::translate
    */
   public void translate(TranslationService translationService) {
+    this.translationService = translationService;
     if (translationService == null) {
-      description.setValue(descriptionKey.getValue());
+      description.setValue(fillPlaceholders(descriptionKey.getValue()));
       return;
     }
 
     if (!Strings.isNullOrEmpty(descriptionKey.get())) {
-      description.setValue(translationService.translate(descriptionKey.get()));
+      description.setValue(fillPlaceholders(translationService.translate(descriptionKey.get())));
     }
   }
 
@@ -274,5 +317,10 @@ public class Category {
    */
   public boolean isExpand() {
     return expand;
+  }
+
+  @Override
+  public void changed(ObservableValue<?> observableValue, Object o, Object t1) {
+    translate(translationService);
   }
 }

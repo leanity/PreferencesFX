@@ -11,6 +11,7 @@ module com.dlsc.preferencesfx {
     requires java.sql;
     requires org.controlsfx.controls;
     requires org.slf4j;
+    requires javafx.base;
 
     exports com.dlsc.preferencesfx;
     exports com.dlsc.preferencesfx.formsfx.view.controls;
