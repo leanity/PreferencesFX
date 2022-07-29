@@ -33,8 +33,9 @@ public class Group {
 
   private VisibilityProperty visibilityProperty;
 
-  private Group(String description, Setting... settings) {
+  private Group(String description, VisibilityProperty visibilityProperty, Setting... settings) {
     this.description = description;
+    this.visibilityProperty = visibilityProperty;
     this.settings = Arrays.asList(settings);
   }
 
@@ -46,7 +47,11 @@ public class Group {
    * @return this object for chaining with the fluent API
    */
   public static Group of(String description, Setting... settings) {
-    return new Group(description, settings);
+    return new Group(description, null, settings);
+  }
+
+  public static Group of(String description, VisibilityProperty visibilityProperty, Setting... settings) {
+    return new Group(description, visibilityProperty, settings);
   }
 
   /**
@@ -56,7 +61,7 @@ public class Group {
    * @return this object for chaining with the fluent API
    */
   public static Group of(Setting... settings) {
-    return new Group(null, settings);
+    return new Group(null, null, settings);
   }
 
   /**

@@ -1,5 +1,6 @@
 package com.dlsc.preferencesfx.formsfx.view.renderer;
 
+import com.dlsc.formsfx.model.structure.DataField;
 import com.dlsc.formsfx.model.structure.Element;
 import com.dlsc.formsfx.model.structure.Field;
 import com.dlsc.formsfx.model.structure.NodeElement;
@@ -8,6 +9,7 @@ import com.dlsc.preferencesfx.util.PreferencesFxUtils;
 import com.dlsc.preferencesfx.util.VisibilityProperty;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.control.Label;
@@ -88,32 +90,35 @@ public class PreferencesFxGroupRenderer {
       // add to GridPane
       Element element = elements.get(i);
       if (element instanceof Field) {
-        SimpleControl c = (SimpleControl) ((Field)element).getRenderer();
-        c.setField((Field)element);
-        grid.add(c.getFieldLabel(), 0, i + rowAmount, 1, 1);
-        grid.add(c.getNode(), 1, i + rowAmount, 1, 1);
+        SimpleControl simpleControl = (SimpleControl) ((Field)element).getRenderer();
+
+        simpleControl.setField((Field)element);
+
+        grid.add(simpleControl.getFieldLabel(), 0, i + rowAmount, 1, 1);
+        grid.add(simpleControl.getNode(), 1, i + rowAmount, 1, 1);
 
         // Styling
-        GridPane.setHgrow(c.getNode(), Priority.SOMETIMES);
-        GridPane.setValignment(c.getNode(), VPos.CENTER);
-        GridPane.setValignment(c.getFieldLabel(), VPos.CENTER);
+        GridPane.setHgrow(simpleControl.getNode(), Priority.SOMETIMES);
+        GridPane.setValignment(simpleControl.getNode(), VPos.CENTER);
+        GridPane.setValignment(simpleControl.getFieldLabel(), VPos.CENTER);
 
         // additional styling for the last setting
         if (i == elements.size() - 1) {
           styleClass.append("-last");
           GridPane.setMargin(
-              c.getNode(),
+              simpleControl.getNode(),
               new Insets(0, 0, PreferencesFxFormRenderer.SPACING * 4, 0)
           );
           GridPane.setMargin(
-              c.getFieldLabel(),
+              simpleControl.getFieldLabel(),
               new Insets(0, 0, PreferencesFxFormRenderer.SPACING * 4, 0)
           );
         }
 
-        c.getFieldLabel().getStyleClass().add(styleClass.toString() + "-label");
-        c.getNode().getStyleClass().add(styleClass.toString() + "-node");
+        simpleControl.getFieldLabel().getStyleClass().add(styleClass.toString() + "-label");
+        simpleControl.getNode().getStyleClass().add(styleClass.toString() + "-node");
       }
+
       if (element instanceof NodeElement) {
         NodeElement nodeElement = (NodeElement) element;
         grid.add(nodeElement.getNode(), 0, i + rowAmount, GridPane.REMAINING, 1);
@@ -126,6 +131,24 @@ public class PreferencesFxGroupRenderer {
    */
   public void setupBindings() {
     titleLabel.textProperty().bind(preferencesGroup.titleProperty());
+
+    VisibilityProperty visibilityProperty = preferencesGroup.getVisibilityProperty();
+
+    if (visibilityProperty != null) {
+      BooleanProperty visibilityPropertyValue = visibilityProperty.get();
+
+      this.titleLabel.visibleProperty().bind(visibilityPropertyValue);
+      this.titleLabel.managedProperty().bind(visibilityPropertyValue);
+
+      preferencesGroup.getElements().forEach(element -> {
+        if (element instanceof DataField) {
+          DataField dataField = (DataField) element;
+
+          dataField.getRenderer().visibleProperty().bind(visibilityPropertyValue);
+          dataField.getRenderer().managedProperty().bind(visibilityPropertyValue);
+        }
+      });
+    }
   }
 
   /**
