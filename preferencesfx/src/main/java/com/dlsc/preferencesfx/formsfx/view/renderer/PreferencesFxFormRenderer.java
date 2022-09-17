@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.geometry.Insets;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 
 /**
@@ -59,5 +60,9 @@ public class PreferencesFxFormRenderer extends GridPane implements ViewMixin {
     // Outer Padding of Category Pane
     setPadding(new Insets(SPACING * 3));
     setHgap(SPACING * 3);
+
+    ColumnConstraints columnConstraints = new ColumnConstraints();
+    columnConstraints.setMinWidth(GridPane.USE_PREF_SIZE);
+    this.getColumnConstraints().add(columnConstraints);
   }
 }

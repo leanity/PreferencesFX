@@ -10,7 +10,7 @@
     <parent>
         <groupId>de.leanity.preferencesfx</groupId>
         <artifactId>parent</artifactId>
-        <version>11.11.0</version>
+        <version>11.12.0</version>
     </parent>
 
     <name>PreferencesFX</name>
