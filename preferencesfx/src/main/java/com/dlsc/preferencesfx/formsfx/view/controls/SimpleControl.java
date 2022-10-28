@@ -264,4 +264,8 @@ public abstract class SimpleControl<F extends Field, N extends Node>
   public void setVisibilityProperty(VisibilityProperty visibilityProperty) {
     this.visibilityProperty = visibilityProperty;
   }
+
+  public boolean isControlRendered() {
+    return this.visibilityProperty == null ? true : this.visibilityProperty.get().get();
+  }
 }

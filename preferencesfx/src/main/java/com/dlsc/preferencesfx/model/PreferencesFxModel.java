@@ -3,10 +3,12 @@ package com.dlsc.preferencesfx.model;
 import static com.dlsc.preferencesfx.util.Constants.DEFAULT_CATEGORY;
 import static com.dlsc.preferencesfx.util.Constants.DEFAULT_DIVIDER_POSITION;
 
+import com.dlsc.formsfx.model.structure.DataField;
 import com.dlsc.formsfx.model.structure.Field;
 import com.dlsc.formsfx.model.structure.FormElement;
 import com.dlsc.formsfx.model.util.TranslationService;
 import com.dlsc.preferencesfx.PreferencesFxEvent;
+import com.dlsc.preferencesfx.formsfx.view.controls.SimpleControl;
 import com.dlsc.preferencesfx.history.History;
 import com.dlsc.preferencesfx.util.PreferencesFxUtils;
 import com.dlsc.preferencesfx.util.SearchHandler;
@@ -408,5 +410,27 @@ public class PreferencesFxModel {
         .filter(element -> element instanceof Field) // only Fields can be persisted
         .map(Field.class::cast)
         .forEach(FormElement::reset);
+  }
+
+  public boolean isValid(boolean includeInvisible) {
+    return PreferencesFxUtils.categoriesToElements(getFlatCategoriesLst())
+        .stream()
+        .filter(element -> element instanceof Field)
+        .map(Field.class::cast)
+        .filter(includeInvisible ?
+            field -> true :
+            field -> ((SimpleControl)field.getRenderer()).isControlRendered())
+        .allMatch(Field::isValid);
+  }
+
+  public boolean hasPendingUserInput(boolean includeInvisible) {
+    return PreferencesFxUtils.categoriesToElements(getFlatCategoriesLst())
+        .stream()
+        .filter(element -> element instanceof DataField) // only DataFields can have pending user input
+        .map(DataField.class::cast)
+        .filter(includeInvisible ?
+            field -> true :
+            field -> ((SimpleControl)field.getRenderer()).isControlRendered())
+        .anyMatch(dataField -> !dataField.userInputProperty().getValue().equals(dataField.valueProperty().getValue().toString()));
   }
 }

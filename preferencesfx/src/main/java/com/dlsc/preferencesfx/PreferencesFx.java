@@ -319,4 +319,28 @@ public class PreferencesFx {
   public ObservableList<String> getStylesheets() {
     return preferencesFxDialog.getStylesheets();
   }
+
+  /**
+   * Return if all settings are valid.
+   *
+   * @param includeInvisible also include invisible settings
+   * @return true if all settings are valid, false otherwise
+   */
+  public boolean isValid(boolean includeInvisible) {
+    return preferencesFxModel.isValid(includeInvisible);
+  }
+
+  /**
+   * Return if any setting has user input that has not been written to the model yet.
+   * This will happen when the user input does not pass the validation checks.
+   *
+   * Controls that contain invalid content already immediately after loading the configuration
+   * will not be considered as having pending user inputs.
+   *
+   * @param includeInvisible also include invisible settings
+   * @return true if any data field has pending user inputs, false otherwise
+   */
+  public boolean hasPendingUserInput(boolean includeInvisible) {
+    return preferencesFxModel.hasPendingUserInput(includeInvisible);
+  }
 }
