@@ -4,6 +4,7 @@ import java.util.function.Function;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
 @FunctionalInterface
@@ -23,14 +24,19 @@ public interface VisibilityProperty {
      * @param <T>
      */
     static <T> VisibilityProperty of(ObservableValue<T> property, Function<T, Boolean> visibilityFunc) {
-        return () -> {
-            BooleanProperty visibilityProperty = new SimpleBooleanProperty(true);
+        return new VisibilityProperty() {
+            private BooleanProperty cachedProperty;
 
-            property.addListener((observable, oldValue, newValue) -> visibilityProperty.set(visibilityFunc.apply(newValue)));
-
-            // set the initial value of the visibility property properly
-            visibilityProperty.set(visibilityFunc.apply(property.getValue()));
-            return visibilityProperty;
+            @Override
+            public BooleanProperty get() {
+                if (cachedProperty == null) {
+                    cachedProperty = new SimpleBooleanProperty(true);
+                    property.addListener((observable, oldValue, newValue) -> cachedProperty.set(visibilityFunc.apply(newValue)));
+                    // set the initial value of the visibility property properly
+                    cachedProperty.set(visibilityFunc.apply(property.getValue()));
+                }
+                return cachedProperty;
+            }
         };
     }
 
